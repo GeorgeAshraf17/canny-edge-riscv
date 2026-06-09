@@ -1,0 +1,5 @@
+build_host/
+build_rv/
+*.o
+*.raw
+*.bin
