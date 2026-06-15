@@ -10,12 +10,17 @@ HOST_FLAGS = -O2
 .PHONY: test canny_rv run clean
 
 test:
-	$(HOST_CXX) $(HOST_FLAGS) -I$(GTEST_INC) \
+	mkdir -p build_host
+	$(HOST_CXX) $(HOST_FLAGS) -Isrc -I$(GTEST_INC) \
 		tests/test_pipeline.cpp \
+		src/gaussian.cpp \
+		src/sobel.cpp \
+		src/magnitude.cpp \
+		src/direction.cpp \
+		src/image_io.cpp \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o build_host/test_pipeline
 	./build_host/test_pipeline
-
 canny_rv:
 	$(RV_CXX) $(RV_FLAGS) src/main.cpp -o build_rv/canny_rv
 
