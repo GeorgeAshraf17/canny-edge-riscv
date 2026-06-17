@@ -20,7 +20,6 @@ test:
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o build_host/test_pipeline
 	./build_host/test_pipeline
-
 canny_rv:
 	mkdir -p build_rv
 	$(RV_CXX) $(RV_ARCH) $(RV_CXXFLAGS) -O2 $(SRC) src/main.cpp \
