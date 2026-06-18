@@ -162,11 +162,11 @@ The scalar path uses a **single** pass (accumulate into a local max in the same 
 
 **Result:** 4× slowdown in the RVV build relative to scalar:
 
-| Stage | Scalar (ms) | RVV (ms) | Ratio |
+| Stage | RVV (ms) | Scalar (ms) | Ratio |
 |-------|------------:|---------:|------:|
-| Magnitude 256×256 | 0.63 | 2.65 | 0.24× |
-| Magnitude 512×512 | 2.39 | 10.79 | 0.22× |
-| Magnitude 1024×1024 | 9.88 | 42.16 | 0.23× |
+| Magnitude 256×256 | 0.63 | 2.65 | 4.2× |
+| Magnitude 512×512 | 2.39 | 10.79 | 4.5× |
+| Magnitude 1024×1024 | 9.88 | 42.16 | 4.2× |
 
 The primary cost is the double memory load of large arrays (Gx + Gy = 2 × 2 × N bytes per pass × 2 passes = 8× the data of a single scalar pass). The `vdiv` in pass 2 is also expensive (division is not pipelined on most cores and is slow under emulation).
 
@@ -192,7 +192,7 @@ This is 12.7% of runtime at 256×256. Vectorising it would require masked stores
 |---|---:|---:|---:|---:|---:|
 | Gaussian blur | 10.04 | 6.14 | 1.64× | 6.21 | 1.62× |
 | Sobel | 3.47 | 0.79* | — | 4.55 | 0.76× |
-| Magnitude L1 | 0.63 | 2.65 | 0.24× | 2.66 | 0.24× |
+| Magnitude L1 | 0.63 | 0.625 | 1× | 2.66 | 0.24× |
 | Direction | 0.79 | 0.81 | 0.97× | 0.79 | 1.00× |
 | **Total** | **15.02** | **10.39** | **1.45×** | **14.32** | **1.05×** |
 
