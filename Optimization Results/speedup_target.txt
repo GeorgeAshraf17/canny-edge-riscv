@@ -1,3 +1,4 @@
+# Optimization Results data
 # docs/speedup_target.txt
 # Scalar vs RVV timings for the default `make canny_rvv` build.
 # <Stage>      <scalar_us>  <rvv_us>  <vectorized: yes|no>

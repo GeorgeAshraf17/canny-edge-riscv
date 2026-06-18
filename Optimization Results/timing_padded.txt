@@ -1,3 +1,4 @@
+# Optimization Results data
 # docs/timing_padded.txt
 # Scalar baseline timings, microseconds, 256x256, averaged over 100 runs.
 # <Stage>      <col0_us>
