@@ -1,60 +1,22 @@
+=== VLEN Sweep Verification Results ===
 
-========== -O0 ==========
-=== Canny Pipeline Timing (avg of 100 runs) ===
-Image size   : 256 x 256
-─────────────────────────────────────────────
-Gaussian blur:  16.799 ms  (67.6%)
-Sobel        :   6.527 ms  (26.3%)
-Magnitude L1 :   0.581 ms  ( 2.3%)
-Direction    :   0.954 ms  ( 3.8%)
-─────────────────────────────────────────────
-Total        :  24.860 ms
-Output files saved.
+VLEN = 128 Configuration:
+- Gaussian blur:   7.883 ms  (75.1%)
+- Sobel        :   0.991 ms  ( 9.4%)
+- Magnitude L1 :   0.615 ms  ( 5.9%)
+- Direction    :   1.003 ms  ( 9.6%)
+- Total        :  10.492 ms
 
-========== -O2 ==========
-=== Canny Pipeline Timing (avg of 100 runs) ===
-Image size   : 256 x 256
-─────────────────────────────────────────────
-Gaussian blur:   7.160 ms  (66.8%)
-Sobel        :   2.637 ms  (24.6%)
-Magnitude L1 :   0.363 ms  ( 3.4%)
-Direction    :   0.551 ms  ( 5.1%)
-─────────────────────────────────────────────
-Total        :  10.711 ms
-Output files saved.
+VLEN = 256 Configuration (Production Default):
+- Gaussian blur:   4.293 ms  (60.1%)
+- Sobel        :   1.321 ms  (18.5%)
+- Magnitude L1 :   0.625 ms  ( 8.7%)
+- Direction    :   0.905 ms  (12.7%)
+- Total        :   7.144 ms
 
-========== -O3 ==========
-=== Canny Pipeline Timing (avg of 100 runs) ===
-Image size   : 256 x 256
-─────────────────────────────────────────────
-Gaussian blur:   2.890 ms  (65.7%)
-Sobel        :   0.589 ms  (13.4%)
-Magnitude L1 :   0.364 ms  ( 8.3%)
-Direction    :   0.552 ms  (12.6%)
-─────────────────────────────────────────────
-Total        :   4.396 ms
-Output files saved.
-
-========== -Os ==========
-=== Canny Pipeline Timing (avg of 100 runs) ===
-Image size   : 256 x 256
-─────────────────────────────────────────────
-Gaussian blur:   5.872 ms  (25.7%)
-Sobel        :  15.842 ms  (69.4%)
-Magnitude L1 :   0.468 ms  ( 2.0%)
-Direction    :   0.649 ms  ( 2.8%)
-─────────────────────────────────────────────
-Total        :  22.830 ms
-Output files saved.
-
-========== -Ofast ==========
-=== Canny Pipeline Timing (avg of 100 runs) ===
-Image size   : 256 x 256
-─────────────────────────────────────────────
-Gaussian blur:   2.984 ms  (66.3%)
-Sobel        :   0.588 ms  (13.1%)
-Magnitude L1 :   0.368 ms  ( 8.2%)
-Direction    :   0.557 ms  (12.4%)
-─────────────────────────────────────────────
-Total        :   4.497 ms
-Output files saved.
+VLEN = 512 Configuration:
+- Gaussian blur:   2.788 ms  (52.4%)
+- Sobel        :   0.985 ms  (18.5%)
+- Magnitude L1 :   0.649 ms  (12.2%)
+- Direction    :   0.900 ms  (16.9%)
+- Total        :   5.322 ms
