@@ -290,4 +290,4 @@ All binaries take the same three positional arguments:
 
 ## License
 
-No license file is currently included in this repository. All rights reserved by the authors unless a license is added.
+his project is licensed under the [MIT License](LICENSE).
