@@ -271,7 +271,7 @@ See `docs/benchmarks.md` for the full investigation, including how to reproduce 
 
 | Name | ID |
 |------|----|
-| George Ashraf | 91240244 |
+| George Ashraf "Leader" | 91240244 |
 | Sara Rezk | 91240340 |
 | Ramez Reda | 91240286 |
 | Refaat Shokry | 91240293 |
