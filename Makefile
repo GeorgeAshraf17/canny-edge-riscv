@@ -1,10 +1,12 @@
 HOST_CXX = g++
 RV_CXX = riscv64-linux-gnu-g++
-RV_CXXFLAGS = -lm
+# Added -Iinclude here so all RISC-V targets automatically find the headers
+RV_CXXFLAGS = -lm -Iinclude
 GTEST_INC = $(HOME)/googletest-install/include
 GTEST_LIB = $(HOME)/googletest-install/lib
 RV_ARCH = -march=rv64gcv
 HOST_FLAGS = -O2
+
 SRC = src/gaussian.cpp src/sobel.cpp src/magnitude.cpp \
       src/direction.cpp src/image_io.cpp
 
@@ -12,7 +14,8 @@ SRC = src/gaussian.cpp src/sobel.cpp src/magnitude.cpp \
 
 test:
 	mkdir -p build_host
-	$(HOST_CXX) $(HOST_FLAGS) -Isrc -I$(GTEST_INC) \
+	# Added -Iinclude here so host unit tests find headers properly
+	$(HOST_CXX) $(HOST_FLAGS) -Isrc -Iinclude -I$(GTEST_INC) \
 		tests/test_pipeline.cpp $(SRC) \
 		-L$(GTEST_LIB) -lgtest -lgtest_main -lpthread \
 		-o build_host/test_pipeline
@@ -55,4 +58,4 @@ run_sweep:
 	done
 
 clean:
-	rm -f build_host/* build_rv/*
+	rm -rf build_host build_rv
