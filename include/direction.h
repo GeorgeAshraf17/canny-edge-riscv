@@ -9,3 +9,4 @@
 void compute_direction(const int16_t* gx, const int16_t* gy,
                         uint8_t* direction, int width, int height);
 
+
