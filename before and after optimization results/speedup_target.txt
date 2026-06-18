@@ -1,0 +1,7 @@
+# docs/speedup_target.txt
+# Scalar vs RVV timings for the default `make canny_rvv` build.
+# <Stage>      <scalar_us>  <rvv_us>  <vectorized: yes|no>
+Gaussian       10040.0   6140.0    yes
+Sobel           3470.0   3470.0    no
+Magnitude        630.0   2650.0    yes
+Direction        790.0    790.0    no
