@@ -3,9 +3,10 @@
 #include <cstdint>
 #include <cstring>
 #include <time.h>
-
 #include "gaussian.h"
+#include "gaussian_rvv.h"
 #include "sobel.h"
+#include "sobel_rvv.h"
 #include "magnitude.h"
 #include "direction.h"
 #include "image_io.h"
@@ -20,7 +21,6 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Usage: %s <input.raw> <width> <height>\n", argv[0]);
         return 1;
     }
-
     const char* input_path = argv[1];
     int width  = atoi(argv[2]);
     int height = atoi(argv[3]);
@@ -38,13 +38,21 @@ int main(int argc, char* argv[]) {
 
     clock_gettime(CLOCK_MONOTONIC, &t0);
     for (int r = 0; r < RUNS; r++)
+#ifdef USE_RVV_GAUSSIAN
+        gaussian_blur_rvv(input, blurred, width, height);
+#else
         gaussian_blur<uint8_t, int32_t, int16_t>(input, blurred, width, height);
+#endif
     clock_gettime(CLOCK_MONOTONIC, &t1);
     double t_gaussian = elapsed_ms(t0, t1) / RUNS;
 
     clock_gettime(CLOCK_MONOTONIC, &t0);
     for (int r = 0; r < RUNS; r++)
+#ifdef USE_RVV_SOBEL
+        sobel_rvv(blurred, gx, gy, width, height);
+#else
         sobel(blurred, gx, gy, width, height);
+#endif
     clock_gettime(CLOCK_MONOTONIC, &t1);
     double t_sobel = elapsed_ms(t0, t1) / RUNS;
 
@@ -64,6 +72,16 @@ int main(int argc, char* argv[]) {
 
     printf("=== Canny Pipeline Timing (avg of %d runs) ===\n", RUNS);
     printf("Image size   : %d x %d\n", width, height);
+#ifdef USE_RVV_GAUSSIAN
+    printf("Gaussian impl: RVV intrinsics\n");
+#else
+    printf("Gaussian impl: scalar\n");
+#endif
+#ifdef USE_RVV_SOBEL
+    printf("Sobel impl   : RVV intrinsics\n");
+#else
+    printf("Sobel impl   : scalar\n");
+#endif
     printf("─────────────────────────────────────────────\n");
     printf("Gaussian blur: %7.3f ms  (%4.1f%%)\n", t_gaussian,  t_gaussian/t_total*100);
     printf("Sobel        : %7.3f ms  (%4.1f%%)\n", t_sobel,     t_sobel/t_total*100);
@@ -82,4 +100,3 @@ int main(int argc, char* argv[]) {
     free(mag);   free(direction);
     return 0;
 }
-
