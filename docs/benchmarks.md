@@ -66,13 +66,3 @@ Timings scale linearly with pixel count across all three sizes, as expected for 
 **Correctness: the RVV outputs are not bit-exact with scalar.** The repo's own equivalence tests (`tests/test_gaussian_rvv_equivalence.cpp`, `tests/test_sobel_rvv_equivalence.cpp`) are not currently wired into `make test`, and running them directly surfaces two issues:
 - `gaussian_blur_rvv` diverges from the scalar reference on the majority of pixels (64,499 / 65,536 at 256×256). The vertical pass rescales by `* 240 >> 16` instead of dividing by 273 directly, which is a fixed-point approximation of `1/273` — close, but not identical, and the divergence is large enough that it likely also includes a logic difference beyond rounding.
 - `sobel_rvv`'s vertical gradient (`gy`) comes out **sign-flipped** relative to scalar on every mismatching pixel (e.g. `gy_scalar=8, gy_rvv=-8`), which propagates into the direction stage as well as the final magnitude map (64,968 / 65,536 pixels differ end-to-end).
-
-These are correctness bugs, not just numerical noise, and should be fixed before relying on the RVV path for production output — see [Recommendations](#recommendations).
-
-## Recommendations
-
-1. **Fix `sobel_rvv`'s `gy` sign.** Compare the vertical-kernel term ordering against the scalar reference (`sobel.cpp`); the vectorized version appears to compute `bottom_row - top_row` where the scalar computes `top_row - bottom_row` (or vice versa).
-2. **Fix or re-derive the Gaussian RVV normalization.** Either use a constant that exactly reproduces `/ 273`, or accept the approximation deliberately and update the equivalence test to check a small tolerance instead of bit-exact equality.
-3. **Wire `test_gaussian_rvv_equivalence` and `test_sobel_rvv_equivalence` into `make test`** so future RVV changes can't silently break numerical correctness.
-4. **Decide whether to ship Sobel RVV at all.** Given it's slower than scalar in this emulated environment, either leave `canny_rvv` as Gaussian-only (current behavior, just needs the bugs above fixed) or re-benchmark on real hardware before enabling `USE_RVV_SOBEL` by default.
-5. **Re-run this benchmark on real RVV-capable hardware** (e.g. a SiFive board or QEMU with `-icount`/cycle modeling) since QEMU user-mode timing reflects host-CPU emulation cost, not target silicon cycles, and instruction-level overheads (like Sobel's) may look very different on real vector units.
