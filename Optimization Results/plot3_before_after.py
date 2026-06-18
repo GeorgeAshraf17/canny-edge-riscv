@@ -1,3 +1,8 @@
+# plot3_before_after.py
+# Bar chart: scalar vs RVV time per stage, for the default canny_rvv build.
+# Grey bars = stages that fall back to scalar at runtime (read from
+# speedup_target.txt's vectorized column, which reflects the
+# #ifdef USE_RVV_SOBEL / USE_RVV_GAUSSIAN guards in src/main.cpp).
 import os
 import sys
 import matplotlib

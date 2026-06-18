@@ -1,3 +1,11 @@
+# timing_parser.py
+# Shared helpers for the *.txt timing files in this folder, used by
+# plot3_before_after.py and plot_pipeline_pie.py.
+#
+# This repo's pipeline (see src/main.cpp) only times four stages:
+#   Gaussian -> Sobel -> Magnitude -> Direction
+# There is no NMS / double-threshold / hysteresis stage implemented
+# anywhere in src/, so STAGES intentionally stops at "Direction".
 # tools/python/timing_parser.py
 # ---------------------------------------------------------------------------
 # Shared helpers for the docs/*.txt timing files used by tools/python/plot*.py
