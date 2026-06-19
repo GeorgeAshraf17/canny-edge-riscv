@@ -46,11 +46,11 @@ Run on a 256×256 image, RVV Gaussian-only build (`canny_rvv`, `vlen=256`):
 
 | Stage | Time (ms) | % of total |
 |-------|----------:|----------:|
-| Gaussian blur | 4.293 | 60.1% |
-| Sobel | 1.321 | 18.5% |
-| Magnitude L1 | 0.625 | 8.7% |
-| Direction | 0.905 | 12.7% |
-| **Total** | **7.144** | — |
+| Gaussian blur | 4.818 | 52.8% |
+| Sobel | 1.090 | 11.9% |
+| Magnitude L1 | 2.152 | 23.6% |
+| Direction | 1.070 | 11.7% |
+| **Total** | **9.130** | — |
 
 **Amdahl's Law analysis:** Gaussian and Sobel together account for ~78.6% of total runtime. Optimising these two stages can theoretically reduce the total by up to that fraction. Direction (12.7%) and Magnitude (8.7%) are poor targets for intrinsic effort. This data drove the decision to write RVV intrinsics for Gaussian first, Sobel second, and leave Direction as scalar.
 
@@ -96,9 +96,8 @@ Disassembly excerpt — horizontal pass inner loop (`vlen=256`):
 
 | Build | Time (ms) | Speedup |
 |-------|----------:|-------:|
-| Scalar `-O2` | 10.04 | 1.0× |
-| RVV (`vlen=256`) | 6.14 | **1.64×** |
-| RVV (`vlen=512`) | ~3.9 | ~2.6× |
+| Scalar `-O2` | 14.00 | 1.0× |
+| RVV (`vlen=256`) | 4.82 | **2.91×** |
 
 The 1.64× speedup at `vlen=256` is consistent with the theoretical throughput increase. QEMU overhead limits the measured gain relative to what real silicon would show.
 
@@ -112,9 +111,7 @@ Enabling `USE_RVV_SOBEL` (full-RVV build) shows:
 
 | Stage | Scalar (ms) | RVV Sobel (ms) | Ratio |
 |-------|------------:|---------------:|------:|
-| Sobel 256×256 | 3.47 | 18.05 (512²) / 3.28 (vlen-only) | slower on full image |
-| Sobel 512×512 | 13.54 | 18.05 | **0.75×** (regression) |
-| Sobel 1024×1024 | 56.33 | 70.64 | **0.80×** (regression) |
+| Sobel 256×256 | 4.85 | 2.64 | **1.84×** |
 
 The vectorised Sobel is slower than scalar on QEMU. This is expected: the 3×3 kernel does very little arithmetic per pixel (8 additions, 4 subtractions), so the fixed overhead of 8 × `vwcvtu` widenings plus `vreinterpret` casts and 2 × `vse16` stores per strip-mined chunk outweighs the benefit of processing multiple pixels per instruction under QEMU emulation. On real RVV silicon these overheads are eliminated; a re-measurement on hardware is warranted before drawing conclusions about silicon performance.
 
@@ -164,7 +161,7 @@ The scalar path uses a **single** pass (accumulate into a local max in the same 
 
 | Stage | RVV (ms) | Scalar (ms) | Ratio |
 |-------|------------:|---------:|------:|
-| Magnitude 256×256 | 0.63 | 2.65 | 4.2× |
+| Magnitude 256×256 | 2.15 | 0.64 | 3.4× |
 | Magnitude 512×512 | 2.39 | 10.79 | 4.5× |
 | Magnitude 1024×1024 | 9.88 | 42.16 | 4.2× |
 
