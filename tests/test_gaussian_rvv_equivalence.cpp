@@ -1,5 +1,5 @@
-#include "../src/gaussian.h"
-#include "../src/gaussian_rvv.h"
+#include "../include/gaussian.h"
+#include "../include/gaussian_rvv.h"
 #include <cstdio>
 #include <cstdlib>
 
