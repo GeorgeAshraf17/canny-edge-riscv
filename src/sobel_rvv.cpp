@@ -83,10 +83,11 @@ void sobel_rvv(const uint8_t* input, int16_t* gx, int16_t* gy, int width, int he
             v_sx = __riscv_vadd_vv_i16m2(v_sx, __riscv_vsub_vv_i16m2(v22, v20, vl), vl);
 
             // --- Sobel Y Kernel Vector Operations ---
-            vint16m2_t v_sy = __riscv_vsub_vv_i16m2(v00, v20, vl);
-            vint16m2_t v_mid_y = __riscv_vsub_vv_i16m2(v01, v21, vl);
+            // sy = bottom_row - top_row (matches scalar: ky=+1 added, ky=-1 subtracted)
+            vint16m2_t v_sy = __riscv_vsub_vv_i16m2(v20, v00, vl);
+            vint16m2_t v_mid_y = __riscv_vsub_vv_i16m2(v21, v01, vl);
             v_sy = __riscv_vadd_vv_i16m2(v_sy, __riscv_vadd_vv_i16m2(v_mid_y, v_mid_y, vl), vl);
-            v_sy = __riscv_vadd_vv_i16m2(v_sy, __riscv_vsub_vv_i16m2(v02, v22, vl), vl);
+            v_sy = __riscv_vadd_vv_i16m2(v_sy, __riscv_vsub_vv_i16m2(v22, v02, vl), vl);
 
             __riscv_vse16_v_i16m2(&gx[y * width + x], v_sx, vl);
             __riscv_vse16_v_i16m2(&gy[y * width + x], v_sy, vl);
