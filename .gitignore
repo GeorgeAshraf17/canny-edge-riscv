@@ -3,3 +3,4 @@ build_rv/
 *.o
 *.raw
 *.bin
+__pycache__/
