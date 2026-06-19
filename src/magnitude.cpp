@@ -1,10 +1,17 @@
 #include "magnitude.h"
-#include <riscv_vector.h>
 #include <cmath>
 #include <cstdint>
 #include <algorithm>
 
+#ifdef USE_RVV_GAUSSIAN
+#include <riscv_vector.h>
+
 // Your high-performance RVV vector reduction routine
+// Only compiled (and only ever needs to be compiled) when targeting the
+// RISC-V V extension toolchain with -DUSE_RVV_GAUSSIAN -- this is the
+// fix: previously <riscv_vector.h> was included and this function was
+// defined unconditionally, which broke host (g++) builds of `make test`
+// since riscv_vector.h doesn't exist outside a RISC-V V cross-compiler.
 void compute_magnitude_rvv(const int16_t* gx, const int16_t* gy, uint8_t* magnitude, int width, int height) {
     int total_pixels = width * height;
     int x = 0;
@@ -53,6 +60,7 @@ void compute_magnitude_rvv(const int16_t* gx, const int16_t* gy, uint8_t* magnit
         x += vl;
     }
 }
+#endif // USE_RVV_GAUSSIAN
 
 // Classical scalar fallback matching the exact naming convention expected by main.cpp
 void magnitude_l1(const int16_t* gx, const int16_t* gy, uint8_t* magnitude, int width, int height) {
@@ -60,7 +68,7 @@ void magnitude_l1(const int16_t* gx, const int16_t* gy, uint8_t* magnitude, int 
     // If compiling for RVV execution, dynamically run our optimized reduction pipeline
     compute_magnitude_rvv(gx, gy, magnitude, width, height);
 #else
-    // Foundational baseline scalar fallback 
+    // Foundational baseline scalar fallback
     int total_pixels = width * height;
     int16_t max_val = 0;
 
@@ -75,4 +83,29 @@ void magnitude_l1(const int16_t* gx, const int16_t* gy, uint8_t* magnitude, int 
         magnitude[i] = static_cast<uint8_t>((mag * 255) / max_val);
     }
 #endif
+}
+
+// L2 (Euclidean) magnitude: sqrt(gx^2 + gy^2), normalized to [0, 255].
+// Declared in magnitude.h and exercised by tests/test_pipeline.cpp's
+// MagnitudeTest suite, but previously had no implementation anywhere in
+// the repo -- this was a silent linker-error bug (undefined reference)
+// that would only surface once the riscv_vector.h host-build bug above
+// was also fixed and `make test` actually got far enough to link.
+// Scalar-only: no RVV variant exists for L2 yet, and main.cpp never
+// calls this stage, so there's no performance-critical path depending
+// on it being vectorized.
+void magnitude_l2(const int16_t* gx, const int16_t* gy, uint8_t* magnitude, int width, int height) {
+    int total_pixels = width * height;
+    float max_val = 0.0f;
+
+    for (int i = 0; i < total_pixels; i++) {
+        float mag = std::sqrt(static_cast<float>(gx[i]) * gx[i] + static_cast<float>(gy[i]) * gy[i]);
+        if (mag > max_val) max_val = mag;
+    }
+    if (max_val == 0.0f) max_val = 1.0f;
+
+    for (int i = 0; i < total_pixels; i++) {
+        float mag = std::sqrt(static_cast<float>(gx[i]) * gx[i] + static_cast<float>(gy[i]) * gy[i]);
+        magnitude[i] = static_cast<uint8_t>((mag * 255.0f) / max_val);
+    }
 }
