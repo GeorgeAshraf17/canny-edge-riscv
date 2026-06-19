@@ -1,9 +1,9 @@
 
 #include <gtest/gtest.h>
-#include "../src/gaussian.h"
-#include "../src/sobel.h"
-#include "../src/magnitude.h"
-#include "../src/direction.h"
+#include "../include/gaussian.h"
+#include "../include/sobel.h"
+#include "../include/magnitude.h"
+#include "../include/direction.h"
 #include "test_helpers.h"
 #include <cstdint>
 #include <vector>
