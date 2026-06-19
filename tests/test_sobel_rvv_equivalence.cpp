@@ -1,5 +1,5 @@
-#include "../src/sobel.h"
-#include "../src/sobel_rvv.h"
+#include "../include/sobel.h"
+#include "../include/sobel_rvv.h"
 #include <cstdio>
 #include <cstdlib>
 
