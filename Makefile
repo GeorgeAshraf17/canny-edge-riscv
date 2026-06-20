@@ -30,6 +30,12 @@ canny_rvv:
 	mkdir -p build_rv
 	$(RV_CXX) $(RV_ARCH) $(RV_CXXFLAGS) -O3 -DUSE_RVV_GAUSSIAN $(SRC) src/gaussian_rvv.cpp src/sobel_rvv.cpp src/main.cpp -o build_rv/canny_rvv
 
+canny_rvv_full:
+	mkdir -p build_rv
+	$(RV_CXX) $(RV_ARCH) $(RV_CXXFLAGS) -O3 -DUSE_RVV_GAUSSIAN -DUSE_RVV_SOBEL \
+		$(SRC) src/gaussian_rvv.cpp src/sobel_rvv.cpp src/main.cpp \
+		-o build_rv/canny_rvv_full
+
 sweep:
 	mkdir -p build_rv
 	@for FLAG in O0 O2 O3 Os Ofast; do \
@@ -48,6 +54,11 @@ run:
 run_rvv:
 	qemu-riscv64 -cpu rv64,v=true,vlen=256 -L /usr/riscv64-linux-gnu \
 		./build_rv/canny_rvv test_image.raw 256 256
+
+
+run_rvv_full:
+	qemu-riscv64 -cpu rv64,v=true,vlen=256 -L /usr/riscv64-linux-gnu \
+		./build_rv/canny_rvv_full test_image.raw 256 256
 
 run_sweep:
 	@for FLAG in O0 O2 O3 Os Ofast; do \
