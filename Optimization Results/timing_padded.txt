@@ -2,7 +2,7 @@
 # docs/timing_padded.txt
 # Scalar baseline timings, microseconds, 256x256, averaged over 100 runs.
 # <Stage>      <col0_us>
-Gaussian       10040.0
-Sobel           3470.0
-Magnitude        630.0
-Direction        790.0
+Gaussian       12743.0
+Sobel           4196.0
+Magnitude        609.0
+Direction        967.0
