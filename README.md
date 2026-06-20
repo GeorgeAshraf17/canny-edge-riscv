@@ -231,11 +231,11 @@ Full methodology, raw tables for 256×256 / 512×512 / 1024×1024, and analysis 
 
 | Stage | Scalar (ms) | RVV: Gaussian only (ms) | Speedup |
 |-------|------------:|--------------------------:|--------:|
-| Gaussian blur | 14.00 | 4.82 | **2.91×** |
-| Sobel | 4.85 | 1.09† | — |
-| Magnitude (L1) | 0.64 | 2.15 | 0.30× |
-| Direction | 1.04 | 1.07 | 0.97× |
-| **Total** | **20.53** | **9.13** | **2.25×** |
+| Gaussian blur | 12.74 | 3.90 | **3.27×** |
+| Sobel | 4.20 | 1.06† | — |
+| Magnitude (L1) | 0.61 | 0.67 | 0.91× |
+| Direction | 0.97 | 0.85 | 1.14× |
+| **Total** | **18.52** | **6.47** | **2.86×** |
 
 **Headline takeaway:** Gaussian blur is the only stage with a clean, structural win from RVV (separable filtering + vectorization). Magnitude is *slower* under `USE_RVV_GAUSSIAN` because it switches to a two-pass (max-reduction, then normalize) implementation, trading one pass for two. Sobel's full-RVV numbers (see `docs/benchmarks.md`) are slower than scalar under QEMU emulation — plausibly because the kernel does too little arithmetic per pixel for vectorization overhead to pay off in an emulated environment; this would need re-measuring on real hardware to draw silicon-level conclusions.
 
