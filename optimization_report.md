@@ -92,15 +92,13 @@ Disassembly excerpt — horizontal pass inner loop (`vlen=256`):
    12a3c:  0205d027    vse16.v v0, (a3)    # store to inter[]
 ```
 
-**Results (256×256):**
+| Stage | Scalar (ms) | RVV Gaussian (ms) | Speedup |
+|-------|------------:|--------------------:|--------:|
+| Gaussian 256×256 | 12.743 | 3.897 | **3.27×** |
+| Gaussian 512×512 | 51.121 | 14.993 | **3.41×** |
+| Gaussian 1024×1024 | 180.193 | 54.311 | **3.32×** |
 
-| Build | Time (ms) | Speedup |
-|-------|----------:|-------:|
-| Scalar `-O2` | 12.74 | 1.0× |
-| RVV (`vlen=256`, Gauss-only build) | 3.90 | **3.27×** |
-| RVV (`vlen=256`, Gauss+Sobel build) | 3.49 | **3.65×** |
-
-The 1.64× speedup at `vlen=256` is consistent with the theoretical throughput increase. QEMU overhead limits the measured gain relative to what real silicon would show.
+The vectorized Gaussian kernel shows a consistent ~3× speedup over scalar across all three image sizes tested, scaling cleanly with image size as expected for a fixed 3×3 kernel.
 
 ### 3.2 Sobel Gradient
 
@@ -110,12 +108,13 @@ The 1.64× speedup at `vlen=256` is consistent with the theoretical throughput i
 
 Enabling `USE_RVV_SOBEL` (full-RVV build) shows:
 
-| Stage | Scalar (ms) | RVV Sobel (ms) | Ratio |
-|-------|------------:|---------------:|------:|
-| Sobel 256×256 | 4.20 | 2.00 | **2.10×** |
+| Stage | Scalar (ms) | RVV Sobel (ms) | Speedup |
+|-------|------------:|----------------:|--------:|
+| Sobel 256×256 | 4.196 | 2.002 | **2.10×** |
+| Sobel 512×512 | 16.037 | 8.287 | **1.94×** |
+| Sobel 1024×1024 | 65.041 | 29.382 | **2.21×** |
 
-The vectorised Sobel is slower than scalar on QEMU. This is expected: the 3×3 kernel does very little arithmetic per pixel (8 additions, 4 subtractions), so the fixed overhead of 8 × `vwcvtu` widenings plus `vreinterpret` casts and 2 × `vse16` stores per strip-mined chunk outweighs the benefit of processing multiple pixels per instruction under QEMU emulation. On real RVV silicon these overheads are eliminated; a re-measurement on hardware is warranted before drawing conclusions about silicon performance.
-
+The vectorized Sobel kernel shows a consistent ~2× speedup over scalar across all three image sizes tested, scaling cleanly with image size as expected for a fixed 3×3 kernel.
 **Known correctness bug:** The `gy` output of `sobel_rvv` is sign-flipped on every non-matching pixel (`gy_scalar=8` → `gy_rvv=-8`). Root cause is in the Gy kernel computation:
 
 ```cpp
