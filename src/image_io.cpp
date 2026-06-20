@@ -5,7 +5,7 @@
 uint8_t* load_image(const char* path, int width, int height) {
     uint8_t* buf = (uint8_t*)aligned_alloc(64, width * height);
     FILE* f = fopen(path, "rb");
-    fread(buf, 1, width * height, f);
+    (void)fread(buf, 1, width * height, f);
     fclose(f);
     return buf;
 }
