@@ -46,11 +46,11 @@ Run on a 256×256 image, RVV Gaussian-only build (`canny_rvv`, `vlen=256`):
 
 | Stage | Time (ms) | % of total |
 |-------|----------:|----------:|
-| Gaussian blur | 4.818 | 52.8% |
-| Sobel | 1.090 | 11.9% |
-| Magnitude L1 | 2.152 | 23.6% |
-| Direction | 1.070 | 11.7% |
-| **Total** | **9.130** | — |
+| Gaussian blur | 3.897 | 60.2% |
+| Sobel | 1.057 | 16.3% |
+| Magnitude L1 | 0.670 | 10.4% |
+| Direction | 0.847 | 13.1% |
+| **Total** | **6.471** | — |
 
 **Amdahl's Law analysis:** Gaussian and Sobel together account for ~78.6% of total runtime. Optimising these two stages can theoretically reduce the total by up to that fraction. Direction (12.7%) and Magnitude (8.7%) are poor targets for intrinsic effort. This data drove the decision to write RVV intrinsics for Gaussian first, Sobel second, and leave Direction as scalar.
 
@@ -96,8 +96,9 @@ Disassembly excerpt — horizontal pass inner loop (`vlen=256`):
 
 | Build | Time (ms) | Speedup |
 |-------|----------:|-------:|
-| Scalar `-O2` | 14.00 | 1.0× |
-| RVV (`vlen=256`) | 4.82 | **2.91×** |
+| Scalar `-O2` | 12.74 | 1.0× |
+| RVV (`vlen=256`, Gauss-only build) | 3.90 | **3.27×** |
+| RVV (`vlen=256`, Gauss+Sobel build) | 3.49 | **3.65×** |
 
 The 1.64× speedup at `vlen=256` is consistent with the theoretical throughput increase. QEMU overhead limits the measured gain relative to what real silicon would show.
 
@@ -111,7 +112,7 @@ Enabling `USE_RVV_SOBEL` (full-RVV build) shows:
 
 | Stage | Scalar (ms) | RVV Sobel (ms) | Ratio |
 |-------|------------:|---------------:|------:|
-| Sobel 256×256 | 4.85 | 2.64 | **1.84×** |
+| Sobel 256×256 | 4.20 | 2.00 | **2.10×** |
 
 The vectorised Sobel is slower than scalar on QEMU. This is expected: the 3×3 kernel does very little arithmetic per pixel (8 additions, 4 subtractions), so the fixed overhead of 8 × `vwcvtu` widenings plus `vreinterpret` casts and 2 × `vse16` stores per strip-mined chunk outweighs the benefit of processing multiple pixels per instruction under QEMU emulation. On real RVV silicon these overheads are eliminated; a re-measurement on hardware is warranted before drawing conclusions about silicon performance.
 
@@ -159,11 +160,9 @@ The scalar path uses a **single** pass (accumulate into a local max in the same 
 
 **Result:** 4× slowdown in the RVV build relative to scalar:
 
-| Stage | RVV (ms) | Scalar (ms) | Ratio |
+| Build | Magnitude (ms) | Scalar (ms) | Ratio |
 |-------|------------:|---------:|------:|
-| Magnitude 256×256 | 2.15 | 0.64 | 3.4× |
-| Magnitude 512×512 | 2.39 | 10.79 | 4.5× |
-| Magnitude 1024×1024 | 9.88 | 42.16 | 4.2× |
+| Gauss+Sobel RVV | 0.48 | 0.61 | **1.26×** |
 
 The primary cost is the double memory load of large arrays (Gx + Gy = 2 × 2 × N bytes per pass × 2 passes = 8× the data of a single scalar pass). The `vdiv` in pass 2 is also expensive (division is not pipelined on most cores and is slow under emulation).
 
@@ -187,11 +186,11 @@ This is 12.7% of runtime at 256×256. Vectorising it would require masked stores
 
 | Stage | Scalar -O2 (ms) | RVV: Gauss only (ms) | Speedup | RVV: Gauss+Sobel (ms) | Speedup |
 |---|---:|---:|---:|---:|---:|
-| Gaussian blur | 10.04 | 6.14 | 1.64× | 6.21 | 1.62× |
-| Sobel | 3.47 | 0.79* | — | 4.55 | 0.76× |
-| Magnitude L1 | 0.63 | 0.625 | 1× | 2.66 | 0.24× |
-| Direction | 0.79 | 0.81 | 0.97× | 0.79 | 1.00× |
-| **Total** | **15.02** | **10.39** | **1.45×** | **14.32** | **1.05×** |
+| Gaussian blur | 12.743 | 3.897 | 3.27× | 3.494 | 3.65× |
+| Sobel | 4.196 | 1.057 | — | 2.002 | 2.10× |
+| Magnitude L1 | 0.609 | 0.670 | 0.91× | 0.484 | 1.26× |
+| Direction | 0.967 | 0.847 | 1.14× | 0.791 | 1.22× |
+| **Total** | **18.516** | **6.471** | **2.86×** | **6.772** | **2.73×** |
 
 \* Sobel in "Gauss only" column is the unmodified scalar kernel — see §3.2.
 
@@ -201,24 +200,22 @@ This is 12.7% of runtime at 256×256. Vectorising it would require masked stores
 
 | Stage | Scalar -O2 (ms) | RVV: Gauss only (ms) | RVV: Gauss+Sobel (ms) |
 |---|---:|---:|---:|
-| Gaussian blur | 40.80 | 24.62 | 25.04 |
-| Sobel | 13.54 | 3.28 | 18.05 |
-| Magnitude L1 | 2.39 | 10.79 | 10.85 |
-| Direction | 3.17 | 3.16 | 3.20 |
-| **Total** | **59.90** | **41.86** | **57.14** |
-
+| Gaussian blur | 51.121 | 14.993 | 14.090 |
+| Sobel | 16.037 | 3.383 | 8.287 |
+| Magnitude L1 | 2.168 | 2.314 | 2.344 |
+| Direction | 3.692 | 3.747 | 3.261 |
+| **Total** | **73.018** | **24.438** | **27.982** |
 ---
 
 ## 6. Full Comparison Table (1024×1024, vlen=256)
 
 | Stage | Scalar -O2 (ms) | RVV: Gauss only (ms) | RVV: Gauss+Sobel (ms) |
 |---|---:|---:|---:|
-| Gaussian blur | 162.51 | 96.43 | 98.14 |
-| Sobel | 56.33 | 12.64 | 70.64 |
-| Magnitude L1 | 9.88 | 42.16 | 41.86 |
-| Direction | 13.18 | 12.72 | 12.87 |
-| **Total** | **241.90** | **163.94** | **223.51** |
-
+| Gaussian blur | 180.193 | 54.311 | 51.474 |
+| Sobel | 65.041 | 13.519 | 29.382 |
+| Magnitude L1 | 8.671 | 7.853 | 7.920 |
+| Direction | 14.405 | 12.873 | 12.779 |
+| **Total** | **268.310** | **88.557** | **101.557** |
 ---
 
 ## 7. Summary of Findings
